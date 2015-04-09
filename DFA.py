@@ -1,15 +1,44 @@
 from collections import namedtuple
 from collections import defaultdict
 
-DFA = namedtuple("DFA", ["states", "alphabet", "transitions", "start_state", "final_states"])
-# tuple of state -> character
-T = namedtuple("transition_key", ["state", "character"])
+DFA = namedtuple("DFA", ["states",
+                         "alphabet",
+                         "transitions",
+                         "start_state",
+                         "final_states"])
 
 
 class InvalidDFA(Exception):
     pass
 
 
+#############
+# Running DFAs
+#############
+
+# Returns true if dfa accepts input_string
+def dfa_accepts(dfa, input_string):
+    current_state = dfa.start_state
+    try:
+        for character in input_string:
+            current_state = dfa.transitions[(current_state, character)]
+    except KeyError as e:
+        state, character = e.args[0]
+
+        # If the input character isn't in the alphabet, reject the string
+        if character not in dfa.alphabet:
+            return False
+        # Else something unexpected has gone wrong
+        else:
+            error = "Something went wrong when attempting transition from state '{}' on input '{}'"
+            raise InvalidDFA(error.format(state, character))
+
+    return current_state in dfa.final_states
+
+
+#############
+# Validation
+#############
 def validate_dfa(dfa):
     validate_final_states(dfa.states, dfa.final_states)
 
@@ -47,15 +76,17 @@ def validate_transitions(states, transitions, alphabet):
 
     # A transition goes to a state that doesn't exist
     if not valid_to_states:
-        raise InvalidDFA("A transition goes to an invalid state")
+        raise InvalidDFA("A transition goes to an invalid state.\n{}".format(transitions))
 
-    ### Make sure each state has a transition for each character in the alphabet
+    # Make sure each state has a transition for each character in the alphabet
     # Holds all the characters found in the transition for each state
     state_character_sets = defaultdict(set)
 
+    # Collect characters
     for state, character in transitions.keys():
         state_character_sets[state].add(character)
 
+    # Make sure each set of characters is the same as the alphabet
     for state, character_set in state_character_sets.items():
         if character_set != alphabet:
             error = "State '{}' doesn't contain a transition for each character in the alphabet".format(state)

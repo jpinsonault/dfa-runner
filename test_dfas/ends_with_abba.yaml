@@ -1,0 +1,26 @@
+description: Accepts strings that end in 'abba'
+
+states: [zero, one, two, three, four]
+
+alphabet: [a, b]
+
+transitions:
+  zero:
+    a: one
+    b: zero
+  one:
+    a: one
+    b: two
+  two:
+    a: one
+    b: three
+  three:
+    a: four
+    b: zero
+  four:
+    a: one
+    b: two
+
+start_state: zero
+
+final_states: [four]
