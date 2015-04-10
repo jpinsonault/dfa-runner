@@ -14,7 +14,7 @@
     The `dfa_accepts` function will determine if a DFA accepts an input string
 
     `parse_dfa_from_yaml` takes in a yaml document and parses out the needed
-    information to create the DFA
+    information and creates a `DFA` object
 """
 
 from collections import namedtuple
@@ -74,13 +74,13 @@ def validate_dfa(dfa):
         Wrapper around the various validation functions
 
         A DFA is valid if:
-            The final states are all in dfa.states
-            The start state is in the dfa.states
-            Each entry in the transition function goes from a state in dfa.states
-                to a state in dfa.states
-            The transition function only transitions on characters that are in dfa.alphabet
-            The transition function has a transition for each character in dfa.alphabet
-                for each state in dfa.states
+        - The final states are all in dfa.states
+        - The start state is in the dfa.states
+        - Each entry in the transition function goes from a state in dfa.states
+           to a state in dfa.states
+        - The transition function only transitions on characters that are in dfa.alphabet
+        - The transition function has a transition for each character in dfa.alphabet
+           for each state in dfa.states
     """
     validate_final_states(dfa.states, dfa.final_states)
 

@@ -345,10 +345,14 @@ class TestDFAsAcceptAndReject(unittest.TestCase):
             reject string is accepted
         """
         for test in self.tests:
-            accept_string = test.yaml["accept_strings"]
+            accept_strings = test.yaml["accept_strings"]
             reject_strings = test.yaml["reject_strings"]
 
-            for input_string in accept_string:
+            # Make sure there are actually strings defined
+            self.assertTrue(len(accept_strings) > 0)
+            self.assertTrue(len(reject_strings) > 0)
+
+            for input_string in accept_strings:
                 # Run them through the DFA, raise exception if it doesn't accept
                 if not dfa_accepts(test.dfa, input_string):
                     raise(UnexpectedRejection(test.yaml["description"], input_string, test.yaml["regex"]))
