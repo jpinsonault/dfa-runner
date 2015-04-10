@@ -1,0 +1,41 @@
+description: Ends with 00 or 01
+
+regex: "[01]*(00|01)"
+
+accept_strings:
+  - "00"
+  - "01"
+  - "101"
+  - "100"
+  - "10100"
+  - "00001"
+
+reject_strings:
+  - ""
+  - "0"
+  - "1"
+  - "10"
+  - "1010111"
+  - "0101010"
+
+states: [a, b, c, d]
+
+alphabet: [0, 1]
+
+transitions:
+  a:
+    0: b
+    1: a
+  b:
+    0: c
+    1: d
+  c:
+    0: c
+    1: d
+  d:
+    0: b
+    1: a
+
+start_state: a
+
+final_states: [c, d]

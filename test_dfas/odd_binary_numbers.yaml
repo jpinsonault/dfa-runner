@@ -1,0 +1,38 @@
+description: Accepts odd binary numbers with leading zeros
+
+regex: "0*(1|[01]*1)"
+
+accept_strings:
+  - "1"
+  - "01"
+  - "101"
+  - "1001"
+  - "101001"
+  - "00001"
+
+reject_strings:
+  - ""
+  - "0"
+  - "00"
+  - "1000"
+  - "10101110"
+  - "0101010"
+
+states: [start, bob, gazorpazorp]
+
+alphabet: [0, 1]
+
+transitions:
+  start:
+    0: start
+    1: bob
+  bob:
+    0: gazorpazorp
+    1: bob
+  gazorpazorp:
+    0: gazorpazorp
+    1: bob
+
+start_state: start
+
+final_states: [bob]

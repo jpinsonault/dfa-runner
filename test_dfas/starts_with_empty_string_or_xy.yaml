@@ -1,0 +1,38 @@
+description: Accepts empty string or strings starting with xy
+
+regex: "(.{0})|(xy[xy]*)"
+
+accept_strings:
+  - ""
+  - xy
+  - xyyyy
+  - xyxxxx
+
+reject_strings:
+  - xx
+  - yy
+  - xxy
+  - yyxy
+  - yxy
+
+states: [empty, found_starting_x, accept_anything_now, error]
+
+alphabet: [x, y]
+
+transitions:
+  empty:
+    x: found_starting_x
+    y: error
+  found_starting_x:
+    x: error
+    y: accept_anything_now
+  error:
+    x: error
+    y: error
+  accept_anything_now:
+    x: accept_anything_now
+    y: accept_anything_now
+
+start_state: empty
+
+final_states: [empty, accept_anything_now]

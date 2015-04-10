@@ -1,9 +1,39 @@
+"""
+    CS311
+    Author: Joe Pinsonault
+
+    Contains unit tests for the DFA module
+
+    Tests all the DFAs in ./test_dfas
+    Each DFA yaml file includes a list of strings it should accept and
+    a list it shouldn't. These are all tested here
+
+    In addition, each DFA contains a regular expression describing the
+    dfa's language.
+    This is used by the exrex module to generate thousands of strings from the
+    language that the DFA should accept.
+
+    exrex generates strings from short to long. For example, if the language is
+        (.{0})|(xy[xy]*)
+    ie, the empty string or strings starting with 'xy', the first string it generates
+    is the empty string, followed by 'xy', and then it begins to add 'x's and 'y's
+    to the end of the string
+
+    See https://github.com/asciimoo/exrex for more details
+"""
+
 import unittest
+from glob import glob
 from collections import namedtuple
+from itertools import islice
+
+import exrex
 
 from DFA import DFA
 from DFA import validate_dfa
 from DFA import dfa_accepts
+from DFA import load_yaml
+from DFA import parse_dfa_from_yaml
 from DFA import validate_final_states
 from DFA import validate_start_state
 from DFA import validate_transitions
@@ -11,12 +41,40 @@ from DFA import InvalidDFA
 
 # Convenience class so that I can reference the parameters to the
 # transition function by name
-#
-# tuple of state -> character
+# tuple of (input state -> input character)
 T = namedtuple("transition_key", ["state", "character"])
 
+# Container for testing DFAs
+DFATest = namedtuple("DFATest", ["yaml", "dfa"])
 
-class TestDfa_StartState_FinalStates(unittest.TestCase):
+
+def take_from(iterator, i):
+    """
+        Wrapper around islice
+        yields i items from iterator
+    """
+    yield from islice(iterator, i)
+
+
+class UnexpectedRejection(Exception):
+    """Exception for DFAs that unexpectedly reject a string"""
+    def __init__(self, dfa_description, input_string, regex):
+        msg = "DFA '{}' rejected '{}' from regex '{}'".format(dfa_description, input_string, regex)
+        super(UnexpectedRejection, self).__init__(msg)
+
+
+class UnexpectedAccept(Exception):
+    """Exception for DFAs that unexpectedly accept a string"""
+    def __init__(self, dfa_description, input_string, regex):
+        msg = "DFA '{}' accepted '{}' from regex '{}'".format(dfa_description, input_string, regex)
+        super(UnexpectedAccept, self).__init__(msg)
+
+
+class TestDfaStartStateAndFinalStates(unittest.TestCase):
+    """
+        Tests that make sure the validation functions catch valid
+        and invalid start states and final states
+    """
     def setUp(self):
         self.states = {1, 2, 3, 4}
 
@@ -62,6 +120,9 @@ class TestDfa_StartState_FinalStates(unittest.TestCase):
 
 
 class TestTransitions(unittest.TestCase):
+    """
+        Tests for validating transition functions
+    """
     def setUp(self):
         self.states = {1, 2, 3, 4}
 
@@ -95,7 +156,7 @@ class TestTransitions(unittest.TestCase):
         with self.assertRaises(InvalidDFA) as e:
             validate_transitions(self.states, transitions, self.alphabet)
 
-        error = "A transition uses a character that's not in the DFA's alphabet"
+        error = "A transition uses characters that aren't in the DFA's alphabet: {'c'}"
 
         self.assertTrue(error in str(e.exception), str(e.exception))
 
@@ -158,6 +219,7 @@ class TestTransitions(unittest.TestCase):
 
 
 class TestBasicDFA(unittest.TestCase):
+    """A quick test to make sure DFAs can accept and reject strings"""
     def setUp(self):
         # Accepts a string with odd number of 'a's
         states = {1, 2}
@@ -189,6 +251,10 @@ class TestBasicDFA(unittest.TestCase):
 
 
 class TestUnvalidatedInvalidDFA(unittest.TestCase):
+    """
+        Make sure dfa_accepts() nice error when something unexpected happens
+        Shouldn't happen if the DFA has been put through the validator
+    """
     def setUp(self):
         # Accepts a string with odd number of 'a's
         states = {1, 2}
@@ -219,6 +285,7 @@ class TestUnvalidatedInvalidDFA(unittest.TestCase):
 
 
 class TestInvalidInputString(unittest.TestCase):
+    """Test that a valid DFA will reject on a character not in the alphabet"""
     def setUp(self):
         # Accepts a string with odd number of 'a's
         states = {1, 2}
@@ -241,3 +308,52 @@ class TestInvalidInputString(unittest.TestCase):
     # they should just be rejected by the DFA
     def test_rejects_string_with_unrecognized_character(self):
         self.assertFalse(dfa_accepts(self.dfa, "ababaQ"))
+
+
+class TestDFAsAcceptAndReject(unittest.TestCase):
+    def setUp(self):
+        """
+            Loads all the yaml files from the test_dfas folder and parses
+            the DFAs they contain
+        """
+        yaml_docs = (load_yaml(filename) for filename in glob("test_dfas/*.yaml"))
+
+        self.tests = [DFATest(doc, parse_dfa_from_yaml(doc)) for doc in yaml_docs]
+
+        for test in self.tests:
+            validate_dfa(test.dfa)
+
+        self.MAX_GENERATED = 10000
+
+    def test_dfas_with_generated_strings(self):
+        """
+            This test uses the exrex module to generate strings from a regular expression
+            Each DFA yaml file includes it's own regular expression that describes the
+            language.
+        """
+        for test in self.tests:
+            # Take at most MAX_GENERATED strings from the exrex generator
+            for input_string in take_from(exrex.generate(test.yaml["regex"]), self.MAX_GENERATED):
+                # Run them through the DFA, raise exception if it doesn't accept
+                if not dfa_accepts(test.dfa, input_string):
+                    raise(UnexpectedRejection(test.yaml["description"], input_string, test.yaml["regex"]))
+
+    def test_dfas_with_provided_strings(self):
+        """
+            Uses the strings provided in the Yaml files.
+            Errors are raised if an accept string is rejected or a
+            reject string is accepted
+        """
+        for test in self.tests:
+            accept_string = test.yaml["accept_strings"]
+            reject_strings = test.yaml["reject_strings"]
+
+            for input_string in accept_string:
+                # Run them through the DFA, raise exception if it doesn't accept
+                if not dfa_accepts(test.dfa, input_string):
+                    raise(UnexpectedRejection(test.yaml["description"], input_string, test.yaml["regex"]))
+
+            for input_string in reject_strings:
+                # Run them through the DFA, raise exception if it accepts
+                if dfa_accepts(test.dfa, input_string):
+                    raise(UnexpectedAccept(test.yaml["description"], input_string, test.yaml["regex"]))

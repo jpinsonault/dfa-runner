@@ -1,5 +1,23 @@
 description: Accepts strings that end in 'abba'
 
+regex: "[ab]*abba"
+
+accept_strings:
+  - abba
+  - aaaaabba
+  - abbbabba
+  - babababba
+  - bbbbabba
+
+reject_strings:
+  - ""
+  - a
+  - ab
+  - abb
+  - babb
+  - abbba
+  - bababa
+
 states: [zero, one, two, three, four]
 
 alphabet: [a, b]

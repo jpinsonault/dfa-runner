@@ -1,0 +1,271 @@
+description: Accepts cat, 1 alpha character, then dog
+
+regex: "cat[a-z]dog"
+
+accept_strings:
+  - catadog
+  - catzdog
+  - catsdog
+
+reject_strings:
+  - ""
+  - catdog
+  - cat
+  - dog
+  - c
+  - d
+  - cat1dog
+  - cat$dog
+
+states: [looking_for_c, c, a, t, anything, d, o, g, error]
+
+alphabet: [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+
+transitions:
+  looking_for_c:
+    a: error
+    b: error
+    c: c
+    d: error
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  c:
+    a: a
+    b: error
+    c: error
+    d: error
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  a:
+    a: error
+    b: error
+    c: error
+    d: error
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: t
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  t:
+    a: anything
+    b: anything
+    c: anything
+    d: anything
+    e: anything
+    f: anything
+    g: anything
+    h: anything
+    i: anything
+    j: anything
+    k: anything
+    l: anything
+    m: anything
+    n: anything
+    o: anything
+    p: anything
+    q: anything
+    r: anything
+    s: anything
+    t: anything
+    u: anything
+    v: anything
+    w: anything
+    x: anything
+    y: anything
+    z: anything
+  anything:
+    a: error
+    b: error
+    c: error
+    d: d
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  d:
+    a: error
+    b: error
+    c: error
+    d: error
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: o
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  o:
+    a: error
+    b: error
+    c: error
+    d: error
+    e: error
+    f: error
+    g: g
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  g:
+    a: error
+    b: error
+    c: error
+    d: error
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+  error:
+    a: error
+    b: error
+    c: error
+    d: error
+    e: error
+    f: error
+    g: error
+    h: error
+    i: error
+    j: error
+    k: error
+    l: error
+    m: error
+    n: error
+    o: error
+    p: error
+    q: error
+    r: error
+    s: error
+    t: error
+    u: error
+    v: error
+    w: error
+    x: error
+    y: error
+    z: error
+
+start_state: looking_for_c
+
+final_states: [g]
