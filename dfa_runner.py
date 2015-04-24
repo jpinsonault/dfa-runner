@@ -49,8 +49,10 @@ def main(args):
 
     if accepts:
         print("DFA accepts string '{}'".format(args.input_string))
+        sys.exit(0)
     else:
         print("DFA rejects string '{}'".format(args.input_string))
+        sys.exit(1)
 
 
 def load_dfa(yaml_filename):

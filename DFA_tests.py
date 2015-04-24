@@ -27,8 +27,6 @@ from glob import glob
 from collections import namedtuple
 from itertools import islice
 
-import exrex
-
 from DFA import DFA
 from DFA import validate_dfa
 from DFA import dfa_accepts
@@ -46,14 +44,6 @@ T = namedtuple("transition_key", ["state", "character"])
 
 # Container for testing DFAs
 DFATest = namedtuple("DFATest", ["yaml", "dfa"])
-
-
-def take_from(iterator, i):
-    """
-        Wrapper around islice
-        yields i items from iterator
-    """
-    yield from islice(iterator, i)
 
 
 class UnexpectedRejection(Exception):
@@ -156,9 +146,10 @@ class TestTransitions(unittest.TestCase):
         with self.assertRaises(InvalidDFA) as e:
             validate_transitions(self.states, transitions, self.alphabet)
 
-        error = "A transition uses characters that aren't in the DFA's alphabet: {'c'}"
+        error = r"A transition uses characters that aren't in the DFA's alphabet: .*'c'"
+        self.assertRegexpMatches(str(e.exception), error)
 
-        self.assertTrue(error in str(e.exception), str(e.exception))
+        # self.assertTrue(error in str(e.exception), str(e.exception))
 
     def test_invalid_from_state_in_transitions(self):
         transitions = {
@@ -331,9 +322,17 @@ class TestDFAsAcceptAndReject(unittest.TestCase):
             Each DFA yaml file includes it's own regular expression that describes the
             language.
         """
+        # Skip this test if exrex isn't installed
+        try:
+            import exrex
+        except ImportError:
+            msg = "Skipping exrex based test because it's missing. Do 'pip install exrex'"
+            print(msg)
+            self.skipTest(msg)
+
         for test in self.tests:
             # Take at most MAX_GENERATED strings from the exrex generator
-            for input_string in take_from(exrex.generate(test.yaml["regex"]), self.MAX_GENERATED):
+            for input_string in islice(exrex.generate(test.yaml["regex"]), self.MAX_GENERATED):
                 # Run them through the DFA, raise exception if it doesn't accept
                 if not dfa_accepts(test.dfa, input_string):
                     raise(UnexpectedRejection(test.yaml["description"], input_string, test.yaml["regex"]))
